@@ -22,9 +22,14 @@ import java.util.Locale;
 /** Récupère la prévision UV du jour à Saint-Cloud et envoie la notif si on peut bronzer. */
 public final class UvChecker {
 
-    static final String FORECAST_URL =
-            "https://api.open-meteo.com/v1/forecast?latitude=48.8448&longitude=2.2197"
-            + "&hourly=uv_index&timezone=Europe%2FParis&forecast_days=1";
+    static String forecastUrl(Context c) {
+        SharedPreferences p = prefs(c);
+        return String.format(Locale.US,
+                "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f"
+                + "&hourly=uv_index&timezone=auto&forecast_days=1",
+                p.getFloat("lat", 48.8448f), p.getFloat("lon", 2.2197f));
+    }
+    static String placeName(Context c) { return prefs(c).getString("name", "Saint-Cloud"); }
     static final String CHANNEL = "bronzage";
     static final int NOTIF_HOUR = 8, NOTIF_MINUTE = 30;
 
@@ -65,7 +70,7 @@ public final class UvChecker {
     static String check(Context c, boolean force) {
         double seuil = threshold(c);
         try {
-            HttpURLConnection con = (HttpURLConnection) new URL(FORECAST_URL).openConnection();
+            HttpURLConnection con = (HttpURLConnection) new URL(forecastUrl(c)).openConnection();
             con.setConnectTimeout(15000);
             con.setReadTimeout(15000);
             StringBuilder sb = new StringBuilder();
@@ -91,15 +96,15 @@ public final class UvChecker {
                 int minutes = sessionMinutes(max, phototype(c));
                 if (seuil < 3 && max < 3) minutes = Math.max(minutes, 30);
                 msg = String.format(Locale.FRANCE,
-                        "UV jusqu'à %.0f entre %dh et %dh. Crème SPF30, %d min max.",
-                        max, first, last + 1, minutes);
+                        "%s : UV jusqu'à %.0f entre %dh et %dh. Crème SPF30, %d min max.",
+                        placeName(c), max, first, last + 1, minutes);
                 if (max >= 8) msg += " Soleil très fort, pas plus longtemps !";
                 notify(c, "☀️ Tu peux aller bronzer !", msg);
                 return msg;
             } else if (force) {
                 msg = String.format(Locale.FRANCE,
-                        "Pas aujourd'hui : l'UV ne dépasse pas %.1f (il faut %.0f). Je te préviens dès que c'est bon.",
-                        max, seuil);
+                        "Pas aujourd'hui à %s : l'UV ne dépasse pas %.1f (il faut %.0f). Je te préviens dès que c'est bon.",
+                        placeName(c), max, seuil);
                 notify(c, "Test Mon Soleil", msg);
                 return msg;
             }
@@ -108,6 +113,19 @@ public final class UvChecker {
             if (force) notify(c, "Test Mon Soleil", "Pas de connexion à la météo pour le moment.");
             return null;
         }
+    }
+
+    static PendingIntent timerIntent(Context c) {
+        return PendingIntent.getBroadcast(c, 2, new Intent(c, TimerReceiver.class), PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    static void startTimer(Context c, int seconds) {
+        AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + seconds * 1000L, timerIntent(c));
+    }
+
+    static void cancelTimer(Context c) {
+        ((AlarmManager) c.getSystemService(Context.ALARM_SERVICE)).cancel(timerIntent(c));
     }
 
     static void notify(Context c, String title, String text) {
