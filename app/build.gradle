@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+def runNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInteger()
+
+android {
+    namespace 'fr.monsoleil'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'fr.monsoleil'
+        minSdk 26
+        targetSdk 34
+        versionCode runNumber
+        versionName "1." + runNumber
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('monsoleil.jks')
+            storePassword 'monsoleil'
+            keyAlias 'monsoleil'
+            keyPassword 'monsoleil'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Soleil · Saint-Cloud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff8ef; --card:#ffffff; --ink:#2a1d14; --soft:#7a6656; --line:#f0e2d2;
+    --sun:#ff9f1c; --sun2:#ff6b35; --ok:#2e9e6a; --low:#c9b8a6; --hot:#d7263d;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#1b1410; --card:#251c16; --ink:#fbefe3; --soft:#bba796; --line:#3a2d23; --low:#5c4c40; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;line-height:1.45}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 48px}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+  h1{font-family:Fraunces,serif;font-weight:800;font-size:30px;margin:0;letter-spacing:-.5px}
+  .place{color:var(--soft);font-size:14px}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .seg button{border:0;background:none;color:var(--soft);font:inherit;font-weight:700;font-size:13px;padding:6px 11px;border-radius:999px;cursor:pointer}
+  .seg button.on{background:var(--ink);color:var(--bg)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px}
+  .hero{position:relative;overflow:hidden}
+  .hero .sunball{position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;
+    background:radial-gradient(circle at 40% 40%,#ffd166,var(--sun) 55%,var(--sun2));opacity:.9}
+  .hero.off .sunball{background:radial-gradient(circle at 40% 40%,#e9e1d8,#cdbfb1);opacity:.6}
+  .verdict{font-family:Fraunces,serif;font-size:26px;font-weight:800;margin:0 0 6px;max-width:78%}
+  .sub{color:var(--soft);margin:0;max-width:85%}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+  .stat{background:var(--bg);border-radius:14px;padding:10px}
+  .stat b{display:block;font-size:20px}
+  .stat span{font-size:12px;color:var(--soft)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  h2{font-size:15px;margin:0;font-weight:700}
+  input[type=date]{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:5px 8px}
+  .navbtn{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:5px 10px;font:inherit;cursor:pointer}
+  svg text{fill:var(--soft);font-family:"DM Sans",sans-serif;font-size:11px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--soft);margin-top:8px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  ul.tips{margin:0;padding-left:18px}
+  ul.tips li{margin-bottom:6px}
+  .note{font-size:12.5px;color:var(--soft)}
+  a{color:var(--sun2)}
+  .next{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:14px}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--bg);color:var(--soft);margin-bottom:8px}
+  .badge.live{background:#e3f5ec;color:var(--ok)}
+  .set{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .set:first-of-type{border-top:0}
+  .set small{display:block;color:var(--soft);font-size:12.5px}
+  .btn{width:100%;border:0;border-radius:14px;padding:12px;font:inherit;font-weight:700;background:var(--ink);color:var(--bg);margin-top:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Mon Soleil</h1>
+      <div class="place">Saint-Cloud · 92</div>
+    </div>
+    <div>
+      <div class="seg" role="group" aria-label="Phototype">
+        <button data-t="2">Type II</button><button data-t="3">Type III</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="card hero" id="hero">
+    <div class="sunball"></div>
+    <span class="badge" id="badge">Ciel dégagé (calcul)</span>
+    <p class="verdict" id="verdict">…</p>
+    <p class="sub" id="sub"></p>
+    <div class="stats">
+      <div class="stat"><b id="sMax">–</b><span>UV max</span></div>
+      <div class="stat"><b id="sWin">–</b><span>Créneau</span></div>
+      <div class="stat"><b id="sDur">–</b><span>Séance conseillée</span></div>
+    </div>
+    <div class="next" id="next" hidden></div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2>Heure par heure</h2>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="navbtn" id="prev" aria-label="Jour précédent">‹</button>
+        <input type="date" id="date">
+        <button class="navbtn" id="nextd" aria-label="Jour suivant">›</button>
+      </div>
+    </div>
+    <svg id="day" viewBox="0 0 520 210" width="100%" role="img" aria-label="Indice UV heure par heure"></svg>
+    <div class="legend">
+      <span><i style="background:var(--low)"></i>Trop faible (&lt; 3)</span>
+      <span><i style="background:var(--sun)"></i>Bronzage possible (3–7)</span>
+      <span><i style="background:var(--hot)"></i>Très fort (8+) : séance courte</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row"><h2>Toute l'année à Saint-Cloud</h2></div>
+    <svg id="year" viewBox="0 0 520 190" width="100%" role="img" aria-label="UV maximum par jour sur l'année"></svg>
+    <p class="note">UV max de chaque jour par ciel dégagé. Au-dessus de la ligne 3, ta peau peut bronzer.</p>
+  </section>
+
+  <section class="card">
+    <h2 style="margin-bottom:6px">Réglages de l'alerte</h2>
+    <div class="set">
+      <div>Seuil d'alerte<small>3 = vrai bronzage · 2 = léger hâle, séances plus longues (dès fin février)</small></div>
+      <div class="seg" id="seuilSeg"><button data-s="2">2</button><button data-s="3">3</button></div>
+    </div>
+    <div class="set">
+      <div>Notif chaque matin vers 8h30<small>Seulement les jours où l'UV prévu atteint ton seuil, nuages compris.</small></div>
+    </div>
+    <button class="btn" id="test">Tester la notification</button>
+  </section>
+
+  <section class="card">
+    <h2 style="margin-bottom:10px">Tes règles de bronzage</h2>
+    <ul class="tips">
+      <li><b>Crème SPF 30 minimum</b>, 20 min avant. Tu bronzes quand même, juste moins vite et sans brûler.</li>
+      <li><b>Progressif :</b> commence par la durée conseillée, un jour sur deux. Le bronzage apparaît 2–3 jours après.</li>
+      <li><b>Le soir, regarde ta peau :</b> rose ou qui chauffe → raccourcis. Rien du tout après plusieurs séances → essaie Type III.</li>
+      <li>Les yeux clairs sont sensibles : lunettes de soleil.</li>
+      <li>Un coup de soleil ne fait pas bronzer plus : la peau pèle et repart à zéro.</li>
+    </ul>
+  </section>
+
+  <p class="note">Pour les 7 prochains jours, l'appli utilise la <b>vraie prévision UV</b> (nuages compris) d'Open-Meteo, un service météo gratuit. Au-delà, ou sans connexion, elle calcule le <b>maximum par ciel bleu</b> à partir de la position du soleil à Saint-Cloud.</p>
+</div>
+
+<script>
+const LAT = 48.8448, LON = 2.2197, TZ = "Europe/Paris";
+// Ozone typique (unités Dobson) au-dessus de Paris, par mois
+const OZONE = [340,370,390,380,360,340,320,310,300,290,300,320];
+// Dose qui donne un coup de soleil (J/m² érythémal), par phototype
+const MED = {2:250, 3:350};
+
+const A = window.Android || null;
+let type = 2, seuil = 3;
+try { if (A) { type = A.getType(); seuil = A.getSeuil() <= 2 ? 2 : 3; } } catch(e){}
+// Vraie prévision : { "AAAA-MM-JJ": [uv de 0h, 1h, ... 23h] }
+let live = {};
+async function loadLive(){
+  try {
+    const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.8448&longitude=2.2197&hourly=uv_index&timezone=Europe%2FParis&forecast_days=7");
+    const j = await r.json(), out = {};
+    j.hourly.time.forEach((t,i)=>{ const d=t.slice(0,10), h=+t.slice(11,13); (out[d] ||= Array(24).fill(0))[h] = j.hourly.uv_index[i] ?? 0; });
+    live = out; render();
+  } catch(e) {}
+}
+
+const rad = d => d*Math.PI/180, deg = r => r*180/Math.PI;
+
+function solarCosZenith(date){
+  const jd = date.getTime()/86400000 + 2440587.5, n = jd - 2451545.0;
+  const L = (280.460 + 0.9856474*n) % 360, g = rad((357.528 + 0.9856003*n) % 360);
+  const lambda = rad(L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g));
+  const eps = rad(23.439 - 0.0000004*n);
+  const dec = Math.asin(Math.sin(eps)*Math.sin(lambda));
+  const ra = Math.atan2(Math.cos(eps)*Math.sin(lambda), Math.cos(lambda));
+  const gmst = (18.697374558 + 24.06570982441908*n) % 24;
+  const H = rad(((gmst*15 + LON) - deg(ra)));
+  return Math.sin(rad(LAT))*Math.sin(dec) + Math.cos(rad(LAT))*Math.cos(dec)*Math.cos(H);
+}
+function uvAt(date){
+  const mu = solarCosZenith(date);
+  if (mu <= 0.02) return 0;
+  const m = +partsOf(date).month - 1;
+  const doy = (Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate()) - Date.UTC(date.getUTCFullYear(),0,0))/86400000;
+  const esd = 1 + 0.033*Math.cos(2*Math.PI*doy/365);
+  return Math.max(0, 0.9 * 12.5 * Math.pow(mu, 2.42) * Math.pow(OZONE[m]/300, -1.23) * esd);
+}
+const fmtParts = new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+function partsOf(d){ const o={}; fmtParts.formatToParts(d).forEach(p=>o[p.type]=p.value); return o; }
+function hm(d){ const p = partsOf(d); return p.hour.replace(/^0/,"")+"h"+p.minute; }
+
+// Instant UTC correspondant à minuit, heure de Paris, pour une date AAAA-MM-JJ
+function parisMidnight(ymd){
+  const [y,mo,da] = ymd.split("-").map(Number);
+  let guess = Date.UTC(y,mo-1,da,0,0);
+  for (let i=0;i<2;i++){ const p = partsOf(new Date(guess)); const shown = Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute); guess -= (shown - Date.UTC(y,mo-1,da,0,0)); }
+  return guess;
+}
+function dayProfile(ymd){
+  const start = parisMidnight(ymd), pts = [];
+  for (let k=0;k<=24*6;k++){ const d = new Date(start + k*600000); pts.push({d, uv: uvAt(d), h: k/6}); }
+  return pts;
+}
+function sessionMinutes(uv){
+  if (uv < seuil) return 0;
+  if (uv < 3) return 30;
+  const toBurn = MED[type] / (uv * 0.025 * 60);
+  return Math.max(5, Math.min(30, Math.round(toBurn*0.4/5)*5 || 5));
+}
+function todayYMD(){ const p = partsOf(new Date()); return `${p.year}-${p.month}-${p.day}`; }
+function addDays(ymd, n){ const [y,m,d]=ymd.split("-").map(Number); const t=new Date(Date.UTC(y,m-1,d+n)); return t.toISOString().slice(0,10); }
+function maxOf(ymd){ return Math.max(...dayProfile(ymd).map(p=>p.uv)); }
+// Profil heure par heure : vraie prévision si dispo, sinon ciel dégagé
+function hourly(ymd){
+  if (live[ymd]) return { live:true, vals: live[ymd] };
+  const start = parisMidnight(ymd), vals = [];
+  for (let h=0; h<24; h++) vals.push(uvAt(new Date(start + (h+0.5)*3600000)));
+  return { live:false, vals };
+}
+function frDate(ymd){ const [y,m,d]=ymd.split("-").map(Number); return new Date(Date.UTC(y,m-1,d,12)).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"}); }
+
+const $ = id => document.getElementById(id);
+let current = todayYMD();
+$("date").value = current;
+
+function render(){
+  document.querySelectorAll(".seg button[data-t]").forEach(b=>b.classList.toggle("on", +b.dataset.t===type));
+  document.querySelectorAll("#seuilSeg button").forEach(b=>b.classList.toggle("on", +b.dataset.s===seuil));
+  const H = hourly(current);
+  let peakH = 0; H.vals.forEach((v,h)=>{ if (v > H.vals[peakH]) peakH = h; });
+  const peak = H.vals[peakH];
+  const okH = H.vals.map((v,h)=>v>=seuil?h:-1).filter(h=>h>=0);
+  const isToday = current === todayYMD();
+  const when = isToday ? "Aujourd'hui" : frDate(current).replace(/^./,c=>c.toUpperCase());
+  $("badge").textContent = H.live ? "Vraie prévision (nuages compris)" : "Ciel dégagé (calcul)";
+  $("badge").classList.toggle("live", H.live);
+  $("sMax").textContent = peak.toFixed(1);
+  $("hero").classList.toggle("off", !okH.length);
+  $("next").hidden = true;
+  if (okH.length){
+    const a = okH[0], b = okH[okH.length-1] + 1, dur = sessionMinutes(peak);
+    $("verdict").textContent = `${when} : tu peux bronzer ☀️`;
+    $("sub").textContent = (H.live ? `D'après la météo, entre ${a}h et ${b}h.` : `Si le ciel est dégagé, entre ${a}h et ${b}h.`) + ` Pic vers ${peakH}h.`
+      + (peak < 3 ? " UV faible : léger hâle seulement." : "")
+      + (peak >= 8 ? " Soleil très fort : reste sur la durée conseillée, pas plus." : "");
+    $("sWin").textContent = `${a}h–${b}h`;
+    $("sDur").textContent = `${dur} min`;
+  } else {
+    const clearMax = maxOf(current);
+    $("verdict").textContent = `${when} : pas assez d'UV`;
+    $("sub").textContent = (H.live && clearMax >= seuil)
+      ? `Le soleil serait assez haut, mais les nuages font tomber l'UV à ${peak.toFixed(1)} maximum.`
+      : `Même en plein soleil, l'UV ne dépasse pas ${peak.toFixed(1)}. Ta peau ne bronzera pas, inutile de geler sur le balcon.`;
+    $("sWin").textContent = "—"; $("sDur").textContent = "—";
+    if (clearMax < seuil){
+      let d = current;
+      for (let i=1;i<=366;i++){ d = addDays(current,i); if (maxOf(d) >= seuil) break; }
+      $("next").hidden = false;
+      $("next").innerHTML = `Premiers jours possibles : à partir du <b>${frDate(d)}</b>, quand le ciel est dégagé.`;
+    }
+  }
+  drawDay(H.vals);
+  drawYear();
+}
+
+function color(uv){ return uv>=8 ? "var(--hot)" : uv>=3 ? "var(--sun)" : "var(--low)"; }
+
+function drawDay(vals){
+  const W=520,H=210,L=28,R=8,T=10,B=26, ymax = Math.max(4, Math.ceil(Math.max(...vals)+1));
+  const x = h => L + (h-5)/(22-5)*(W-L-R), y = v => H-B - v/ymax*(H-T-B);
+  let s = "";
+  for (let v=0; v<=ymax; v+= ymax>8?2:1){ s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`; }
+  s += `<line x1="${L}" x2="${W-R}" y1="${y(seuil)}" y2="${y(seuil)}" stroke="var(--sun2)" stroke-dasharray="4 4"/>`;
+  for (let h=5; h<22; h++){
+    const uv = vals[h] || 0;
+    const bx = x(h)+2, bw = (W-L-R)/17-4;
+    if (uv>0.05) s += `<rect x="${bx}" y="${y(uv)}" width="${bw}" height="${y(0)-y(uv)}" rx="4" fill="${color(uv)}"><title>${h}h–${h+1}h : UV ${uv.toFixed(1)}</title></rect>`;
+    if (h%3===0) s += `<text x="${x(h)}" y="${H-8}" text-anchor="middle">${h}h</text>`;
+  }
+  if (current === todayYMD()){
+    const p = partsOf(new Date()), hn = +p.hour + +p.minute/60;
+    if (hn>=5 && hn<=22) s += `<line x1="${x(hn)}" x2="${x(hn)}" y1="${T}" y2="${H-B}" stroke="var(--ink)" stroke-width="1.5"/><text x="${x(hn)+4}" y="${T+10}" style="fill:var(--ink)">maintenant</text>`;
+  }
+  $("day").innerHTML = s;
+}
+
+function drawYear(){
+  const W=520,H=190,L=28,R=8,T=10,B=24, y0 = current.slice(0,4)+"-01-01";
+  const vals = []; for (let i=0;i<365;i+=2){ vals.push(maxOf(addDays(y0,i))); }
+  const ymax = 9, x = i => L + i/(vals.length-1)*(W-L-R), y = v => H-B - v/ymax*(H-T-B);
+  let s = "";
+  [0,3,6,9].forEach(v=> s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`);
+  s += `<line x1="${L}" x2="${W-R}" y1="${y(3)}" y2="${y(3)}" stroke="var(--sun2)" stroke-dasharray="4 4"/>`;
+  vals.forEach((v,i)=>{ if(i) s += `<line x1="${x(i-1)}" y1="${y(vals[i-1])}" x2="${x(i)}" y2="${y(v)}" stroke="${color(Math.max(v,vals[i-1]))}" stroke-width="3" stroke-linecap="round"/>`; });
+  "JFMAMJJASOND".split("").forEach((m,k)=> s += `<text x="${L + (k+0.5)/12*(W-L-R)}" y="${H-6}" text-anchor="middle">${m}</text>`);
+  const doy = (Date.parse(current) - Date.parse(y0))/86400000, ci = doy/2;
+  s += `<circle cx="${x(ci)}" cy="${y(maxOf(current))}" r="5" fill="var(--ink)"/>`;
+  $("year").innerHTML = s;
+}
+
+document.querySelectorAll(".seg button[data-t]").forEach(b=>b.addEventListener("click",()=>{ type = +b.dataset.t; try{ A && A.setType(type); }catch(e){} render(); }));
+document.querySelectorAll("#seuilSeg button").forEach(b=>b.addEventListener("click",()=>{ seuil = +b.dataset.s; try{ A && A.setSeuil(seuil); }catch(e){} render(); }));
+$("test").addEventListener("click", ()=>{ try{ A && A.testNotif(); $("test").textContent = "Notif envoyée, regarde en haut de l'écran"; }catch(e){} });
+$("date").addEventListener("change", e=>{ if(e.target.value){ current = e.target.value; render(); }});
+$("prev").addEventListener("click", ()=>{ current = addDays(current,-1); $("date").value=current; render(); });
+$("nextd").addEventListener("click", ()=>{ current = addDays(current,1); $("date").value=current; render(); });
+render();
+loadLive();
+</script>
+</body>
+</html>
