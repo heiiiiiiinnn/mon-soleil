@@ -66,6 +66,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (web != null) web.evaluateJavascript("window.refreshNotif && refreshNotif()", null);
+    }
+
     private boolean hasLocation() {
         return checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
@@ -127,6 +133,14 @@ public class MainActivity extends Activity {
         }
         @JavascriptInterface public void startTimer(int seconds) { UvChecker.startTimer(getApplicationContext(), seconds); }
         @JavascriptInterface public void cancelTimer() { UvChecker.cancelTimer(getApplicationContext()); }
+        @JavascriptInterface public boolean notifOn() {
+            return ((android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE)).areNotificationsEnabled();
+        }
+        @JavascriptInterface public void openNotifSettings() {
+            android.content.Intent i = new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(i);
+        }
         @JavascriptInterface public void testNotif() {
             final android.content.Context app = getApplicationContext();
             new Thread(() -> UvChecker.check(app, true)).start();

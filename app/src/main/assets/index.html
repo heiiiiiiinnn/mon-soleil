@@ -125,6 +125,10 @@ ul.tips li{margin-bottom:8px}
 .durPick{display:flex;gap:8px}
 .durPick button{border:1px solid var(--stroke);background:var(--glass2);color:var(--ink);border-radius:12px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}
 .durPick button.on{border-color:var(--a1);color:var(--a1)}
+.nstat{margin-top:10px;padding:11px 14px;border-radius:16px;font-size:14px;display:flex;align-items:center;gap:10px}
+.nstat.on{background:rgba(78,240,165,.06);border:1px solid rgba(78,240,165,.25)}
+.nstat.off{background:rgba(255,59,92,.08);border:1px solid rgba(255,59,92,.35)}
+.nstat button{margin-left:auto;border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:700;background:var(--hot);color:#fff;cursor:pointer;flex-shrink:0}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1b28;border:1px solid var(--stroke);padding:10px 16px;border-radius:12px;font-size:14px;z-index:40;opacity:0;transition:.3s;pointer-events:none}
 .toast.show{opacity:1}
 </style>
@@ -140,6 +144,7 @@ ul.tips li{margin-bottom:8px}
   </div>
 
   <div class="banner" id="moveBanner"></div>
+  <div class="nstat" id="nstat"></div>
 
   <section class="hero">
     <div class="orbBox">
@@ -198,7 +203,7 @@ ul.tips li{margin-bottom:8px}
       <div class="seg" id="seuilSeg"><button data-v="2">2</button><button data-v="3">3</button></div></div>
     <div class="row"><div>Suivre ma position<small>Te prévient quand tu n'es plus au même endroit</small></div>
       <div class="seg" id="autoSeg"><button data-v="0">Non</button><button data-v="1">Oui</button></div></div>
-    <button class="ghost" id="test">Tester la notification</button>
+    <button class="ghost" id="test">Envoyer une notif de test maintenant</button>
   </section>
 
   <section class="card">
@@ -579,6 +584,17 @@ function bindSeg(id, fn){ document.querySelectorAll(`#${id} button`).forEach(b=>
 bindSeg("typeSeg", v=>{ type=v; try{ A && A.setType(v); }catch(e){} });
 bindSeg("seuilSeg", v=>{ seuil=v; try{ A && A.setSeuil(v); }catch(e){} });
 bindSeg("autoSeg", v=>{ auto=v; store.set("auto", v); if (v) checkMoved(); });
+function refreshNotif(){
+  const e = $("nstat"); let on = true;
+  try{ if (A && A.notifOn) on = A.notifOn(); }catch(x){}
+  e.className = "nstat " + (on ? "on" : "off");
+  e.innerHTML = on
+    ? `<span>🔔</span><span><b>Alertes automatiques activées.</b><br><small style="color:var(--soft)">Chaque matin vers 8h30, notif seulement si tu peux bronzer.</small></span>`
+    : `<span>🔕</span><span><b>Notifications bloquées</b><br><small style="color:var(--soft)">Tu ne recevras pas d'alerte.</small></span><button id="nfix">Activer</button>`;
+  const b = $("nfix"); if (b) b.onclick = () => { try{ A.openNotifSettings(); }catch(x){} };
+}
+window.refreshNotif = refreshNotif;
+refreshNotif();
 $("test").onclick = () => { try{ A ? A.testNotif() : 0; toast("Notif envoyée, regarde en haut de l'écran"); }catch(e){} };
 $("prev").onclick = () => { current = addDays(current,-1); buzz(6); render(); };
 $("nextd").onclick = () => { current = addDays(current,1); buzz(6); render(); };
